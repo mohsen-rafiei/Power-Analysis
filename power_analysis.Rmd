@@ -1,0 +1,86 @@
+
+---
+title: "Power Analysis for UX/HF Research"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This document demonstrates how to perform power analysis in UX and HF research. Power analysis is used to determine the sample size needed to detect an effect with a specified confidence level and statistical power.
+
+---
+
+## Step 1: Load the Data
+
+```{r load-data}
+# Load necessary libraries
+library(tidyverse)
+library(pwr)
+
+# Load the dataset (assuming it's in the same folder as this Rmd file)
+data <- read.csv("power_analysis_data.csv")
+
+# Quick look at the data
+head(data)
+summary(data)
+```
+
+---
+
+## Step 2: Visualize the Data
+
+```{r visualize-data}
+# Plot the scores for each group
+ggplot(data, aes(x = Group, y = Score, fill = Group)) +
+  geom_boxplot() +
+  labs(title = "Score Distribution by Group", x = "Group", y = "Score") +
+  theme_minimal()
+```
+
+---
+
+## Step 3: Perform Power Analysis
+
+### Power Analysis for a Two-Sample t-Test
+```{r power-t-test}
+# Calculate effect size (Cohen's d)
+group_means <- data %>%
+  group_by(Group) %>%
+  summarise(Mean = mean(Score), SD = sd(Score))
+
+effect_size <- abs(diff(group_means$Mean)) / mean(group_means$SD)
+cat("Effect Size (Cohen's d):", round(effect_size, 2), "
+")
+
+# Perform power analysis
+power_t <- pwr.t.test(d = effect_size, power = 0.8, sig.level = 0.05, type = "two.sample")
+cat("Required sample size per group:", ceiling(power_t$n), "
+")
+```
+
+### Power Analysis for ANOVA
+```{r power-anova}
+# Perform power analysis for one-way ANOVA
+anova_effect_size <- 0.25  # Medium effect size (Cohen's f)
+power_anova <- pwr.anova.test(k = 2, f = anova_effect_size, power = 0.8, sig.level = 0.05)
+cat("Total required sample size for ANOVA:", ceiling(power_anova$n), "
+")
+```
+
+---
+
+## Step 4: Interpret Results
+
+- **Effect Size (Cohen's d)**: Indicates the magnitude of the difference between groups.
+- **Sample Size for t-Test**: The number of participants needed in each group to detect the effect with 80% power and a 5% significance level.
+- **Sample Size for ANOVA**: Total number of participants needed to detect a medium effect size.
+
+---
+
+## Conclusion
+
+This document demonstrates how to perform power analysis for common statistical tests in UX/HF research. You can adjust the effect size, power, and significance level based on your study's needs.
